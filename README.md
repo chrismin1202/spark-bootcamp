@@ -1,6 +1,6 @@
-# Spark Workshopt Code Examples
+# Spark Workshop Code Examples
 
-This repository contains code samples for Apache Spark/Spark MLlib Workshop @ [SDSC](https://www.southerndatascience.com/) 2018.
+This repository contains code samples for Apache Spark/Spark MLlib Workshop @ [SDSC](https://www.southerndatascience.com/) 2019 Atlanta.
 
 * Scala Version: 2.11.12 (You can downgrade, but I recommend 2.11.8 or higher)
 * Python Version: 3.x
