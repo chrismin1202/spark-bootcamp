@@ -1,40 +1,11 @@
 #!/usr/bin/env bash
 
-function error {
-  echo "$@" 1>&2
-  exit 1
-}
+set -o nounset -o errexit -o pipefail
+
+. utils.sh
 
 CURR_DIR=$(pwd -P)
 SPARK_VERSION="spark-2.4.0-bin-hadoop2.7"
-
-function dir_exists {
-  [ -d $"$@" ]
-}
-
-function file_exists {
-  [ -f $"$@" ]
-}
-
-function dir_exists_or_err {
-  local dir="$@"
-  if dir_exists $dir; then
-    echo "$dir exists."
-    return 0
-  else
-    error "$dir does not exists!"
-  fi
-}
-
-function file_exists_or_err {
-  local f="$@"
-  if file_exists $f; then
-    echo "$f exists."
-    return 0
-  else
-    error "$f does not exists!"
-  fi
-}
 
 function spark_exists {
   local base_dir="$@"
@@ -146,7 +117,7 @@ REPO=
 TAG=
 BASEDOCKERFILE=
 NOCACHEARG=
-while getopts f:p:R:mr:t:nb: option
+while getopts f:r:t:n option
 do
   case "${option}" in
   f) BASEDOCKERFILE=${OPTARG};;
