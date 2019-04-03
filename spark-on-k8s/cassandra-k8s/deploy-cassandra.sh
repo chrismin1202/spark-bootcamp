@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 
-set -o nounset -o errexit -o pipefail
+set -o errexit -o pipefail
 
-. ../utils.sh
+CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" #$(pwd -P)
+. ${CURR_DIR}/../utils.sh
+
+DEFAULT_K8S_NAMESPACE="cassandra"
+DEFAULT_CLUSTER_NAME="cassandra"
 
 function namespace_exists {
   # verify that the namespace exists
@@ -31,9 +35,6 @@ function destory {
   echo "Destorying Cassandra cluster named ${CLUSTER_NAME}..."
   helm delete  --purge ${CLUSTER_NAME}
 }
-
-DEFAULT_K8S_NAMESPACE="cassandra"
-DEFAULT_CLUSTER_NAME="cassandra"
 
 function usage {
   cat <<EOF
@@ -90,7 +91,7 @@ case $key in
     DEPLOY=true
     shift 
     ;;
-  --destory)
+  --destroy)
     DESTROY=true
     shift 
     ;;

@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 
-set -o nounset -o errexit -o pipefail
+set -o errexit -o pipefail
 
 . utils.sh
 
 CURR_DIR=$(pwd -P)
+DEPENDENCIES_PATH="${CURR_DIR}/dependencies"
 SPARK_VERSION="spark-2.4.0-bin-hadoop2.7"
+#spark-on-k8s/spark-cassandra/target/scala-2.11/spark-cassandra-assembly-0.0.1.jar
+UBER_JAR="spark-cassandra-assembly-0.0.1.jar"
+
+function check_requirements {
+  command_exists_or_err sbt
+  command_exists_or_err docker
+}
 
 function spark_exists {
   local base_dir="$@"
@@ -38,10 +46,23 @@ function download_if_not_exists {
 
 function set_spark_home {
   if [ -z "${SPARK_HOME}" ]; then
-    CURR_DIR
-    SPARK_HOME="$CURR_DIR/$SPARK_VERSION/"
+    SPARK_HOME="${CURR_DIR}/${SPARK_VERSION}/"
   fi
   . "${SPARK_HOME}/bin/load-spark-env.sh"
+}
+
+function compile_dependencies {
+  local sbt_path="${CURR_DIR}/spark-cassandra/"
+  cd ${sbt_path}
+  echo "Compiling Spark Cassandra example SBT project..."
+  sbt clean assembly
+  echo "Successfully compiled Spark Cassandra example."
+  cd ${CURR_DIR}
+
+  local uber_jar_src_path="${sbt_path}/target/scala-2.11/${UBER_JAR}"
+  local uber_jar_dest_path="${DEPENDENCIES_PATH}/${UBER_JAR}"
+  echo "Copying the compiled uber jar from ${uber_jar_src_path} to ${uber_jar_dest_path}"
+  cp ${uber_jar_src_path} ${uber_jar_dest_path}
 }
 
 function image_ref {
@@ -57,28 +78,26 @@ function image_ref {
 }
 
 function build {
-
-  local dependencies="$CURR_DIR/dependencies"
-  if dir_exists $dependencies; then
-    echo "$dependencies already exists."
+  if dir_exists ${DEPENDENCIES_PATH}; then
+    echo "${DEPENDENCIES_PATH} already exists."
   else
-    echo "$dependencies does not exist. Creating..."
-    mkdir $dependencies
+    echo "${DEPENDENCIES_PATH} does not exist. Creating..."
+    mkdir ${DEPENDENCIES_PATH}
   fi
-  local build_args=("--build-arg" "spark_base=$SPARK_VERSION")
-  echo "$build_args"
-  echo "${build_args[@]}"
+  compile_dependencies
+
+  local build_args=("--build-arg" "spark_base=${SPARK_VERSION}")
 
   echo "Checking if there is any Docker image with the tag ${TAG}..."
-  local existing_images=$(docker images --filter=reference="*:$TAG" -q)
-  if [ ! -z "$existing_images" ]; then
-    echo "Removing the following Docker images with the tag ${TAG}: $existing_images"
-    docker rmi -f $existing_images
+  local existing_images=$(docker images --filter=reference="*:${TAG}" -q)
+  if [ ! -z "${existing_images}" ]; then
+    echo "Removing the following Docker images with the tag ${TAG}: ${existing_images}"
+    docker rmi -f ${existing_images}
   fi
 
-  docker build $NOCACHEARG "${build_args[@]}" \
+  docker build ${NOCACHEARG} "${build_args[@]}" \
     -t $(image_ref spark) \
-    -f "$CURR_DIR/Dockerfile" .
+    -f "${CURR_DIR}/Dockerfile" .
 }
 
 function push {
