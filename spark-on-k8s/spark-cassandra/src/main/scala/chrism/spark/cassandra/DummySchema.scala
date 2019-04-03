@@ -2,7 +2,7 @@ package chrism.spark.cassandra
 
 import java.{sql => js}
 
-final case class DummySchema(
+private final case class DummySchema(
   s: String,
   b: Boolean,
   i32: Int,
@@ -12,7 +12,7 @@ final case class DummySchema(
   d: js.Date,
   ts: js.Timestamp)
 
-object DummySchema {
+private object DummySchema {
 
   val PartitionKeyColumns: Seq[String] = Seq("i32", "b")
   val ClusteringKeyColumns: Seq[String] = Seq("ts", "d")
