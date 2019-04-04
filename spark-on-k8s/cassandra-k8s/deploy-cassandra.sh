@@ -2,7 +2,7 @@
 
 set -o errexit -o pipefail
 
-CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" #$(pwd -P)
+CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . ${CURR_DIR}/../utils.sh
 
 DEFAULT_K8S_NAMESPACE="cassandra"

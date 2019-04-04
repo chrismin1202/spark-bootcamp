@@ -4,10 +4,11 @@ set -o errexit -o pipefail
 
 . utils.sh
 
-CURR_DIR=$(pwd -P)
+CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. ${CURR_DIR}/utils.sh
+
 DEPENDENCIES_PATH="${CURR_DIR}/dependencies"
 SPARK_VERSION="spark-2.4.0-bin-hadoop2.7"
-#spark-on-k8s/spark-cassandra/target/scala-2.11/spark-cassandra-assembly-0.0.1.jar
 UBER_JAR="spark-cassandra-assembly-0.0.1.jar"
 
 function check_requirements {
