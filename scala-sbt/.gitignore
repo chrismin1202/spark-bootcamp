@@ -11,3 +11,4 @@ target/
 .idea/sbt.xml
 .idea/vcs.xml
 .idea/uiDesigner.xml
+.idea/.name

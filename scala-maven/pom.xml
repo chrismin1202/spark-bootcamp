@@ -13,18 +13,18 @@
         <maven-scala-plugin.version>2.15.2</maven-scala-plugin.version>
         <scala.version.prefix>2.11</scala.version.prefix>
         <scala.version>${scala.version.prefix}.12</scala.version>
-        <spark.version>2.3.0</spark.version>
+        <spark.version>2.4.0</spark.version>
         <hadoop.version>2.8.4</hadoop.version>
     </properties>
 
     <groupId>chrism.sdsc</groupId>
-    <artifactId>scala-spark</artifactId>
+    <artifactId>scala-maven</artifactId>
     <version>0.0.1</version>
     <packaging>pom</packaging>
 
     <name>SDSC Spark Workshop Demo</name>
     <description>
-        SDSC Spark Workshop Spark demo code in Scala
+        A sample Spark Scala Maven project
     </description>
 
     <modules>
