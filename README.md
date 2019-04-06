@@ -10,7 +10,8 @@ This repository contains code samples for Apache Spark/Spark MLlib Workshop @ [S
 
 Examples
 --------
-* [Scala sbt example](scala-sbt): A simple example of building a deployable Spark application using sbt
-* [Scala Maven example](scala-maven): A simple example of building a deployable Spark application using Maven. 
+* [Scala SBT example](scala-sbt): Am example for building a deployable Spark application using SBT
+* [Scala Maven example](scala-maven): An example for building a deployable Spark application using Maven. 
   * Note that this example demonstrates how to structure multi-module projects.
-* [Python example](python): A simple example of structuring a simple Spark application in Python.
+* [Python example](python): A simple example for structuring a simple Spark application in Python.
+* [Kubernetes example](spark-on-k8s): An example for running Spark on Kubernetes. Note that the example uses Cassandra as the persistent storage.
