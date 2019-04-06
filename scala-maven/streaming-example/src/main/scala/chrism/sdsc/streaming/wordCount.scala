@@ -41,7 +41,8 @@ object WordCount {
 
       import spark.implicits._
 
-      val wordFrequencyDs = rdd.toDS()
+      val wordFrequencyDs = rdd
+        .toDS()
         .flatMap(Delimiter.split)
         .map(_.toLowerCase)
         .map(WordFrequency(_))
@@ -67,7 +68,8 @@ private object SparkSessionSingleton {
 
   def getOrCreate(sparkConf: SparkConf): SparkSession = {
     if (instance == null) {
-      instance = SparkSession.builder()
+      instance = SparkSession
+        .builder()
         .config(sparkConf)
         .getOrCreate()
     }

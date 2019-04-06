@@ -48,12 +48,12 @@ trait TestHadoopFileSystemMixin extends SuiteMixin with BeforeAndAfterAll {
     })
   }
 
-  protected final def hdfs(/* side-effects */): FileSystem = getOrInitializeFileSystem()
+  protected final def hdfs( /* side-effects */ ): FileSystem = getOrInitializeFileSystem()
 
   protected final def newHdfsPath(p: String, subPaths: String*): fs.Path =
     new fs.Path((hdfsSchemeAuthority +: p +: subPaths).mkString(hdfsPathSeparator))
 
-  private[this] def getOrInitializeHadoopConf(/* IO */): Configuration = {
+  private[this] def getOrInitializeHadoopConf( /* IO */ ): Configuration = {
     if (_hadoopConf == null) {
       _hadoopConf = new Configuration()
       _hadoopConf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, _baseDir.getAbsolutePath)
@@ -61,7 +61,7 @@ trait TestHadoopFileSystemMixin extends SuiteMixin with BeforeAndAfterAll {
     _hadoopConf
   }
 
-  private[this] def close(/* side-effects */): Unit = {
+  private[this] def close( /* side-effects */ ): Unit = {
     if (_closed) {
       throw new IOException("FileSystem cannot be re-closed when it is already closed!")
     }
@@ -73,13 +73,13 @@ trait TestHadoopFileSystemMixin extends SuiteMixin with BeforeAndAfterAll {
     _closed = true
   }
 
-  private[this] def checkClosed(/* side-effects */): Unit = {
+  private[this] def checkClosed( /* side-effects */ ): Unit = {
     if (_closed) {
       throw new IOException("FileSystem has already been closed!")
     }
   }
 
-  private[this] def getOrInitializeCluster(/* side-effects */): MiniDFSCluster = {
+  private[this] def getOrInitializeCluster( /* side-effects */ ): MiniDFSCluster = {
     checkClosed()
     if (_cluster == null) {
       _cluster = new MiniDFSCluster.Builder(getOrInitializeHadoopConf()).build()
@@ -87,10 +87,10 @@ trait TestHadoopFileSystemMixin extends SuiteMixin with BeforeAndAfterAll {
     _cluster
   }
 
-  private[this] def getOrInitializeFileSystem(/* side-effects */): FileSystem = {
+  private[this] def getOrInitializeFileSystem( /* side-effects */ ): FileSystem = {
     val cluster = getOrInitializeCluster()
     if (_hdfs == null) {
-      _hdfs = cluster.getFileSystem(/* IO */)
+      _hdfs = cluster.getFileSystem( /* IO */ )
     }
     _hdfs
   }

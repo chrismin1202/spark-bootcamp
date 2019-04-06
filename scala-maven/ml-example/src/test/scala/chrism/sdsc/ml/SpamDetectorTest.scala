@@ -18,8 +18,7 @@ final class SpamDetectorTest extends TestSuite with TestSparkSessionMixin {
     val trainedModel = SpamDetector.trainModel(trainingDs)
 
     // The model can be persisted and reused.
-    trainedModel
-      .write
+    trainedModel.write
       .overwrite()
       .save(SpamDetector.DefaultNaiveBayesModelPath)
 

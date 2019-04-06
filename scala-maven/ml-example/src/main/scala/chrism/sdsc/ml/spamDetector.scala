@@ -25,8 +25,7 @@ object SpamDetector extends Runner {
     val testDs = datasets.testDs
 
     // train and persist the model
-    trainModel(trainingDs)
-      .write
+    trainModel(trainingDs).write
       .overwrite()
       .save(DefaultNaiveBayesModelPath)
 
@@ -44,8 +43,8 @@ object SpamDetector extends Runner {
     * @param trainingPercentage the percentage of training [[Dataset]] between (0.0, 1.0)
     * @return an instance of [[Datasets]] that contains training and test [[Dataset]]s
     */
-  private[ml] def loadDatasets(trainingPercentage: Double = DefaultTrainingPercentage)
-    (implicit spark: SparkSession): Datasets = {
+  private[ml] def loadDatasets(trainingPercentage: Double = DefaultTrainingPercentage)(
+    implicit spark: SparkSession): Datasets = {
     // Split data into training and testing
     val encodedSpamDs = encodeSpamData(loadSpamData())
     Datasets.split(encodedSpamDs, trainingPercentage)
@@ -79,8 +78,7 @@ object SpamDetector extends Runner {
       .as[EncodedDataRow]
   }
 
-  private[ml] def trainModel(trainingDs: Dataset[EncodedDataRow])
-    (implicit spark: SparkSession): CrossValidatorModel = {
+  private[ml] def trainModel(trainingDs: Dataset[EncodedDataRow])(implicit spark: SparkSession): CrossValidatorModel = {
     // Create a pipeline for training a model
     val naiveBayesClassifier = new NaiveBayes()
       .setLabelCol("indexedLabel")
@@ -106,15 +104,16 @@ object SpamDetector extends Runner {
       .fit(trainingDs)
   }
 
-  private def loadSpamData(/* IO */)(implicit spark: SparkSession): Dataset[DataRow] = {
+  private def loadSpamData( /* IO */ )(implicit spark: SparkSession): Dataset[DataRow] = {
     import spark.implicits._
 
     // If the CSV is in HDFS, you should call spark.read.csv(...).
     spark.createDataset(loadCsv())
   }
 
-  private def loadCsv(/* IO */): Seq[DataRow] =
-    ResourceHandle.loadResource(RawCsvDataPath)
+  private def loadCsv( /* IO */ ): Seq[DataRow] =
+    ResourceHandle
+      .loadResource(RawCsvDataPath)
       .filter(StartsWith.findFirstIn(_).isDefined)
       .map(_.split(",", 2))
       .map(a => DataRow(a(0), a(1)))
@@ -124,11 +123,11 @@ object SpamDetector extends Runner {
 final case class DataRow(label: String, text: String)
 
 final case class EncodedDataRow(
-    label: String,
-    text: String,
-    indexedLabel: Double,
-    tokens: Seq[String],
-    textVec: linalg.Vector)
+  label: String,
+  text: String,
+  indexedLabel: Double,
+  tokens: Seq[String],
+  textVec: linalg.Vector)
 
 final case class Datasets(trainingDs: Dataset[EncodedDataRow], testDs: Dataset[EncodedDataRow])
 
