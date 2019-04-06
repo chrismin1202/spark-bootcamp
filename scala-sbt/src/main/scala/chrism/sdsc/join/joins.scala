@@ -48,6 +48,26 @@ object JoinExamples extends Runner {
     profileDs
   }
 
+  def leftOuterJoin2Example()(implicit spark: SparkSession): Dataset[Profile] = {
+    import spark.implicits._
+
+    val employmentTable = employmentDs()
+
+    // Dataset INNER JOIN
+    val nameGenderDs = joinExample().as[Profile]
+
+    // Dataset LEFT OUTER JOIN
+    import PimpMyJoinImplicits._
+
+    val nonNullEmploymentDs = employmentTable.filter(_.jobTitle.nonEmpty)
+
+    val profileDs = nameGenderDs
+      .leftOuterJoin2(nonNullEmploymentDs, nameGenderDs("id") === nonNullEmploymentDs("id"))((l, rOpt) =>
+        rOpt.map(r => l.copy(jobTitle = r.jobTitle.orNull)).getOrElse(l))
+
+    profileDs
+  }
+
   def fullOuterJoinExample()(implicit spark: SparkSession): Unit = {
     // Try FULL OUTER JOIN
     // Note that as opposed to LEFT OUTER JOIN, either left or right record can be null in a FULL OUTER JOIN.
@@ -99,11 +119,26 @@ object JoinExamples extends Runner {
   private object PimpMyJoinImplicits {
 
     // Just to demo so-call "pimp-my-library" pattern
-
     implicit final class Joiner[L](leftDs: Dataset[L]) {
 
       def leftOuterJoin[R, J: Encoder](rightDs: Dataset[R], condition: Column)(joinFunc: (L, R) => J): Dataset[J] =
         leftDs.joinWith(rightDs, condition, "leftOuter").map(joinFunc.tupled)
+
+      /** This is an alternative null-safe (but slightly less efficient) version of [[leftOuterJoin()]].
+        * When LEFT OUTER JOIN-ing, the right record can be missing.
+        * In that case, `joinFunc` in [[leftOuterJoin()]] needs to handle the case when [[R]] is null.
+        * By wrapping [[R]] with [[Option]], it becomes clear to the definer of `joinFunc` that [[R]] can be [[None]].
+        *
+        * @param rightDs the right [[Dataset]]
+        * @param condition the join expression
+        * @param joinFunc the join function
+        * @return the [[Dataset]] of type [[J]]
+        */
+      def leftOuterJoin2[R, J: Encoder](rightDs: Dataset[R], condition: Column)(
+        joinFunc: (L, Option[R]) => J): Dataset[J] =
+        leftDs
+          .joinWith(rightDs, condition, "leftOuter")
+          .map(v => joinFunc(v._1, Option(v._2)))
     }
 
   }
@@ -124,7 +159,7 @@ final case class Profile(
   gender: String = null,
   jobTitle: String = null)
 
-// Just to show an alternative
+// An alternative to avoid null
 final case class NullSafeProfile(
   id: Int,
   first: Option[String] = None,

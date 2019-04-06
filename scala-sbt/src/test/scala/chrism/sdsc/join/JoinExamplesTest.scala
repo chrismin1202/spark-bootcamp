@@ -32,4 +32,17 @@ final class JoinExamplesTest extends TestSuite with TestSparkSessionMixin {
     )
     profiles should contain theSameElementsAs expected
   }
+
+  test("LEFT OUTER JOIN alternative") {
+    val profiles = JoinExamples.leftOuterJoin2Example().collect()
+    val expected = Seq(
+      Profile(1, first = "Rachel", last = "Green", gender = "female", jobTitle = "Waitress"),
+      Profile(2, first = "Monica", last = "Geller", gender = "female", jobTitle = "Chef"),
+      Profile(3, first = "Phoebe", last = "Buffey", gender = "female", jobTitle = "Masseuse"),
+      Profile(4, first = "Joey", last = "Tribbiani", gender = "male", jobTitle = "Actor"),
+      Profile(5, first = "Chandler", last = "Bing", gender = "male"),
+      Profile(6, first = "Ross", last = "Geller", gender = "male", jobTitle = "Paleontologist")
+    )
+    profiles should contain theSameElementsAs expected
+  }
 }
