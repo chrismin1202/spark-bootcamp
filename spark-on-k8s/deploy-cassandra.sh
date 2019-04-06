@@ -22,10 +22,13 @@ function check_requirements {
 function deploy {
   check_requirements
 
+  echo "Adding the 'incubator' Helm repo..."
+  helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com/
+
   echo "Deploying Cassandra cluster named ${CLUSTER_NAME} to the namespace ${K8S_NAMESPACE}..."
   helm install \
     --namespace ${K8S_NAMESPACE} -n ${CLUSTER_NAME} \
-    --set config.cluster_size=2,config.max_heap_size=1024M,config.heap_new_size=512M,persistence.size=1Gi,persistence.enabled=true \
+    --set config.cluster_size=2,config.max_heap_size=1024M,persistence.size=1Gi \
     incubator/cassandra
 }
 
@@ -33,7 +36,7 @@ function destory {
   check_requirements
   
   echo "Destorying Cassandra cluster named ${CLUSTER_NAME}..."
-  helm delete  --purge ${CLUSTER_NAME}
+  helm delete --purge ${CLUSTER_NAME}
 }
 
 function usage {
