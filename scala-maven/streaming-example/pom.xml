@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>chrism.sdsc</groupId>
-        <artifactId>scala-spark</artifactId>
+        <artifactId>scala-maven</artifactId>
         <version>0.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -16,7 +16,7 @@
         <dependency>
             <groupId>chrism.sdsc</groupId>
             <artifactId>common</artifactId>
-            <version>${demo.version}</version>
+            <version>${sdsc.version}</version>
         </dependency>
 
         <!-- Spark dependencies -->
