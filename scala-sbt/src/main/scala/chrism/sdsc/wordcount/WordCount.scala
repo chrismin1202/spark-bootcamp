@@ -15,7 +15,8 @@ object WordCount extends Runner {
     import spark.implicits._
 
     val nums = 1 to 4
-    spark.createDataset(nums)
+    spark
+      .createDataset(nums)
       .repartition(nums.size)
       .flatMap(_ => generateRandomWords())
       .groupByKey(_.word)
@@ -26,7 +27,7 @@ object WordCount extends Runner {
       .show(NumLetters, truncate = false)
   }
 
-  private def generateRandomWords(/* potential IO */): Seq[CountableWord] = {
+  private def generateRandomWords( /* potential IO */ ): Seq[CountableWord] = {
     val rand = ThreadLocalRandom.current()
     (1 to 10000)
       .map(_ => {

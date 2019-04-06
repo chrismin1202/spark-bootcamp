@@ -17,8 +17,8 @@ final class TaskNotSerializableExampleTest extends TestSuite with TestSparkSessi
       }
     assert(sparkException.getMessage.contains("Task not serializable"))
     sparkException.getCause match {
-      case notSerializableException: NotSerializableException => println(notSerializableException.getMessage)
-      case other => fail(s"$other is not an expected cause!")
+      case ex: NotSerializableException => println(ex.getMessage)
+      case other                        => fail(s"$other is not an expected cause!")
     }
   }
 

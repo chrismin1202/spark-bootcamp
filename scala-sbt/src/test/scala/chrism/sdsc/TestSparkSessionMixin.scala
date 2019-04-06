@@ -7,7 +7,8 @@ trait TestSparkSessionMixin extends SuiteMixin with BeforeAndAfterAll {
   this: TestSuite =>
 
   @transient
-  protected final implicit lazy val spark: SparkSession = SparkSession.builder()
+  protected implicit final lazy val spark: SparkSession = SparkSession
+    .builder()
     .master("local[*]")
     .getOrCreate()
 

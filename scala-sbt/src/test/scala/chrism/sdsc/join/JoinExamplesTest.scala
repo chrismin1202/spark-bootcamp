@@ -15,7 +15,8 @@ final class JoinExamplesTest extends TestSuite with TestSparkSessionMixin {
       NullSafeProfile(3, first = Some("Phoebe"), last = Some("Buffey"), gender = Some("female")),
       NullSafeProfile(4, first = Some("Joey"), last = Some("Tribbiani"), gender = Some("male")),
       NullSafeProfile(5, first = Some("Chandler"), last = Some("Bing"), gender = Some("male")),
-      NullSafeProfile(6, first = Some("Ross"), last = Some("Geller"), gender = Some("male")))
+      NullSafeProfile(6, first = Some("Ross"), last = Some("Geller"), gender = Some("male"))
+    )
     profiles should contain theSameElementsAs expected
   }
 
@@ -27,7 +28,8 @@ final class JoinExamplesTest extends TestSuite with TestSparkSessionMixin {
       Profile(3, first = "Phoebe", last = "Buffey", gender = "female", jobTitle = "Masseuse"),
       Profile(4, first = "Joey", last = "Tribbiani", gender = "male", jobTitle = "Actor"),
       Profile(5, first = "Chandler", last = "Bing", gender = "male"),
-      Profile(6, first = "Ross", last = "Geller", gender = "male", jobTitle = "Paleontologist"))
+      Profile(6, first = "Ross", last = "Geller", gender = "male", jobTitle = "Paleontologist")
+    )
     profiles should contain theSameElementsAs expected
   }
 }
