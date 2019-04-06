@@ -84,7 +84,7 @@ The Cassandra cluster used in this example is built with [Helm](https://helm.sh/
    ```
    Note "spark-docker" is an arbitrary tag (`-t`) name. You can change it to whatever you want. The command downloads Spark 2.4.0 release (unless you changed `SPARK_VERSION` to another version), compiles [`spark-cassandra`](spark-cassandra) SBT proejct, and builds Docker image with them.
 
-## Playing with Cassandra
+## Play with Cassandra
 Test to make sure that Cassandra cluster is working properly by running some queries.<br/>
 Cassandra has its own query language similar to ANSI SQL called Cassandra Query Language (CQL). If you are interested, you can learn more about CQL [here](http://cassandra.apache.org/doc/latest/cql/index.html). 
 
