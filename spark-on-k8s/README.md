@@ -78,117 +78,140 @@ The Cassandra cluster used in this example is built with [Helm](https://helm.sh/
       DN  10.1.0.92   ?           256     50.6%             94caf9f1-5c0d-4ea6-92ea-a4c6a3588322  rack1
       ```
       try re-deploying the cluster by destorying (`--destroy`) and deploying again.
-   1. Open CQL shell and run a few queries.
-      ```sh
-      kubectl exec -ti --namespace=cassandra cassandra-0 cqlsh
-      ```
-      1. Create a keyspace, which is equivalent to a database in SQL.
-         ```sql
-         CREATE KEYSPACE test_db WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
-         ```
-      1. Switch to the newly created `test_db` keyspace.
-         ```sql
-         USE test_db;
-         ```
-      1. Create a dummy table for testing.
-         ```sql
-         CREATE TABLE t (
-           pk int,
-           t int,
-           v text,
-           s text static,
-           PRIMARY KEY (pk, t)
-         );
-         ```
-      1. Populate the table by issuing a few `INSERT INTO` statements.
-         ```sql
-         INSERT INTO t (pk, t, v) VALUES (1, 0, 'val1');
-         INSERT INTO t (pk, t, v) VALUES (2, 0, 'val2');
-         INSERT INTO t (pk, t, v) VALUES (3, 0, 'val3');
-         INSERT INTO t (pk, t, v) VALUES (3, 1, 'val3');
-         INSERT INTO t (pk, t, v) VALUES (3, 2, 'val3');
-         ```
-      1. View the contents of the table.
-         ```sql
-         SELECT * FROM t;
-         ```
-      1. Quit the shell.
-         ```
-         quit;
-         ```  
 1. Build Spark image.
    ```sh
    sh build-spark-docker.sh -t spark-docker build
    ```
    Note "spark-docker" is an arbitrary tag (`-t`) name. You can change it to whatever you want. The command downloads Spark 2.4.0 release (unless you changed `SPARK_VERSION` to another version), compiles [`spark-cassandra`](spark-cassandra) SBT proejct, and builds Docker image with them.
-1. Submit Spark application.<br/>
-   Make sure that `spark-2.4.0-bin-hadoop2.7` directory, which should have been created by the previous step, exists before running the commands below.
-   1. Read the Cassandra table `t` in keyspace `test_db` via Spark.
-      ```sh
-      spark-2.4.0-bin-hadoop2.7/bin/spark-submit  \
-        --master k8s://https://localhost:6443  \
-        --deploy-mode cluster  \
-        --conf spark.executor.instances=1  \
-        --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark  \
-        --conf spark.kubernetes.container.image=spark:spark-docker  \
-        --class chrism.spark.cassandra.ConnectCassandra  \
-        --name cassandra-test  \
-        local:///opt/spark/dependencies/spark-cassandra-assembly-0.0.1.jar \
-          --cassandra-host cassandra-0.cassandra.cassandra \
-          --keyspace test_db \
-          --table t \
-          --operation read \
-          --num-rows 20
-      ```
-      * Note 1: If you changed the tag name from "spark-docker" to something else, you need to update the conf `spark.kubernetes.container.image=spark:spark-docker` accordingly.<br/>
-      * Note 2: `local:///opt/spark/dependencies/spark-cassandra-assembly-0.0.1.jar` is the location of the jar within the Docker image.<br/>
-      * Note 3: The following arguments are the arguments for `chrism.spark.cassandra.ConnectCassandra`.
-      ```
-      --cassandra-host cassandra-0.cassandra.cassandra \
-      --keyspace test_db \
-      --table t \
-      --operation read \
-      --num-rows 20
-      ```
-      You can learn more about `spark-submit` command [here](https://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit).<br/>
-      Note that similar to YARN, if you run the application in cluster mode (`--deploy-mode cluster`), you need to check the logs of the driver pod.
-   1. Create and write to a new Cassandra table via Spark.
-      ```sh
-      spark-2.4.0-bin-hadoop2.7/bin/spark-submit  \
-        --master k8s://https://localhost:6443  \
-        --deploy-mode cluster  \
-        --conf spark.executor.instances=1  \
-        --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark  \
-        --conf spark.kubernetes.container.image=spark:spark-docker  \
-        --class chrism.spark.cassandra.ConnectCassandra  \
-        --name cassandra-test  \
-        local:///opt/spark/dependencies/spark-cassandra-assembly-0.0.1.jar \
-          --cassandra-host cassandra-0.cassandra.cassandra \
-          --keyspace test_db \
-          --table t_spark \
-          --operation write \
-          --num-rows 1000
-      ```
-      Note that the schema of the table being created is defined in `spark-cassandra` proeject. Spark reflectively creates the schema (`StructType`) from the class [`DummySchema`](spark-cassandra/src/main/scala/chrism/spark/cassandra/DummySchema.scala).
-   1. Read the table you just created.
-      ```sh
-      spark-2.4.0-bin-hadoop2.7/bin/spark-submit  \
-        --master k8s://https://localhost:6443  \
-        --deploy-mode cluster  \
-        --conf spark.executor.instances=1  \
-        --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark  \
-        --conf spark.kubernetes.container.image=spark:spark-docker  \
-        --class chrism.spark.cassandra.ConnectCassandra  \
-        --name cassandra-test  \
-        local:///opt/spark/dependencies/spark-cassandra-assembly-0.0.1.jar \
-          --cassandra-host cassandra-0.cassandra.cassandra \
-          --keyspace test_db \
-          --table t_spark \
-          --operation read \
-          --num-rows 20
-      ```
-      Again, the rows are being printed to the console of the driver pod.
-1. Tear down Cassandra cluster.
+
+## Playing with Cassandra
+Test to make sure that Cassandra cluster is working properly by running some queries.<br/>
+Cassandra has its own query language similar to ANSI SQL called Cassandra Query Language (CQL). If you are interested, you can learn more about CQL [here](http://cassandra.apache.org/doc/latest/cql/index.html). 
+
+1. Open CQL shell.
    ```sh
-   sh deploy-cassandra.sh --destroy
+   kubectl exec -ti --namespace=cassandra cassandra-0 cqlsh
    ```
+1. Create a keyspace, which is equivalent to a database in SQL.
+   ```sql
+   CREATE KEYSPACE test_db WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+   ```
+1. Switch to the newly created `test_db` keyspace.
+   ```sql
+   USE test_db;
+   ```
+1. Create a dummy table for testing.
+   ```sql
+   CREATE TABLE t (
+     pk int,
+     t int,
+     v text,
+     s text static,
+     PRIMARY KEY (pk, t)
+   );
+   ```
+1. Insert a row.
+   ```sql
+   INSERT INTO t (pk, t, v, s) VALUES (0, 0, 'val0', 'static0');
+   ```
+1. View the contents of the table.
+   ```sql
+   SELECT * FROM t;
+   ```
+1. Insert another row and view the table again.
+   ```sql
+   INSERT INTO t (pk, t, v, s) VALUES (0, 1, 'val0', 'static1');
+   SELECT * FROM t;
+   ```
+   Observe what happens to the column `s` and guess what `static` keyword does. If you want to learn more about Cassandra, read [CQL documentation](http://cassandra.apache.org/doc/latest/cql/definitions.html). This is not a Cassandra tutorial :)
+1. Populate the table by issuing a few more `INSERT INTO` statements.
+   ```sql
+   INSERT INTO t (pk, t, v) VALUES (1, 0, 'val1');
+   INSERT INTO t (pk, t, v) VALUES (2, 0, 'val2');
+   INSERT INTO t (pk, t, v) VALUES (3, 0, 'val3');
+   INSERT INTO t (pk, t, v) VALUES (3, 1, 'val3');
+   INSERT INTO t (pk, t, v) VALUES (3, 2, 'val3');
+   SELECT * FROM t;
+   ```
+1. Quit the shell.
+   ```
+   quit;
+   ```  
+
+## Run Spark against Cassandra
+We built a Docker image for Spark so that we can run Spark on Kubernetes. Use the image to submit a Spark application to your Kubernetes cluster.<br/>
+Make sure that `spark-2.4.0-bin-hadoop2.7` directory, which should have been created when you created the image using `build-spark-docker.sh` script, exists before running the commands below unless you already set up `spark-submit` command on your environment. If you did, the version must be 2.4.0; otherwise, you can run into some version conflicts.
+
+1. Read the Cassandra table `t` in keyspace `test_db` via Spark.
+   ```sh
+   spark-2.4.0-bin-hadoop2.7/bin/spark-submit  \
+     --master k8s://https://localhost:6443  \
+     --deploy-mode cluster  \
+     --conf spark.executor.instances=1  \
+     --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark  \
+     --conf spark.kubernetes.container.image=spark:spark-docker  \
+     --class chrism.spark.cassandra.ConnectCassandra  \
+     --name cassandra-test  \
+     local:///opt/spark/dependencies/spark-cassandra-assembly-0.0.1.jar \
+       --cassandra-host cassandra-0.cassandra.cassandra \
+       --keyspace test_db \
+       --table t \
+       --operation read \
+       --num-rows 20
+   ```
+   * Note 1: The master `k8s://https://localhost:6443` needs to be changed if the host and/or port of your Kubernetes master is different.
+   * Note 2: If you changed the tag name from "spark-docker" to something else, you need to update the conf `spark.kubernetes.container.image=spark:spark-docker` accordingly.<br/>
+   * Note 3: `local:///opt/spark/dependencies/spark-cassandra-assembly-0.0.1.jar` is the location of the jar within the Docker image.<br/>
+   * Note 4: The following arguments are the arguments for `chrism.spark.cassandra.ConnectCassandra`.
+     ```
+     --cassandra-host cassandra-0.cassandra.cassandra \
+     --keyspace test_db \
+     --table t \
+     --operation read \
+     --num-rows 20
+     ```
+     You can learn more about `spark-submit` command [here](https://spark.apache.org/docs/latest/submitting-applications.html#launching-applications-with-spark-submit).<br/>
+     Note that similar to YARN, if you run the application in cluster mode (`--deploy-mode cluster`), you need to check the logs of the driver pod.
+   * Note 5: The Cassandra host `cassandra-0.cassandra.cassandra` can only be resolved if you are running both Cassandra and Spark on the same Kubernetes cluster. If you have a Cassandra cluster on a different Kubernetes cluster or if there exists a non-Kubernetized Cassandra cluster you'd like to use, you need to use its external host name.
+1. Create and write to a new Cassandra table via Spark.
+   ```sh
+   spark-2.4.0-bin-hadoop2.7/bin/spark-submit  \
+      --master k8s://https://localhost:6443  \
+      --deploy-mode cluster  \
+      --conf spark.executor.instances=1  \
+      --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark  \
+      --conf spark.kubernetes.container.image=spark:spark-docker  \
+      --class chrism.spark.cassandra.ConnectCassandra  \
+      --name cassandra-test  \
+      local:///opt/spark/dependencies/spark-cassandra-assembly-0.0.1.jar \
+         --cassandra-host cassandra-0.cassandra.cassandra \
+         --keyspace test_db \
+         --table t_spark \
+         --operation write \
+         --num-rows 1000
+   ```
+   Note that the schema of the table being created is defined in `spark-cassandra` proeject. Spark reflectively creates the schema (`StructType`) from the class [`DummySchema`](spark-cassandra/src/main/scala/chrism/spark/cassandra/DummySchema.scala).
+1. Read the table you just created.
+   ```sh
+   spark-2.4.0-bin-hadoop2.7/bin/spark-submit  \
+      --master k8s://https://localhost:6443  \
+      --deploy-mode cluster  \
+      --conf spark.executor.instances=1  \
+      --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark  \
+      --conf spark.kubernetes.container.image=spark:spark-docker  \
+      --class chrism.spark.cassandra.ConnectCassandra  \
+      --name cassandra-test  \
+      local:///opt/spark/dependencies/spark-cassandra-assembly-0.0.1.jar \
+         --cassandra-host cassandra-0.cassandra.cassandra \
+         --keyspace test_db \
+         --table t_spark \
+         --operation read \
+         --num-rows 20
+   ```
+   Again, the rows are being printed to the console of the driver pod.
+
+## Tear down Cassandra
+When you are done, you can tear down the Cassandra cluster with the following command:
+```sh
+sh deploy-cassandra.sh --destroy
+```
