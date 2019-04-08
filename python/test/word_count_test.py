@@ -1,5 +1,5 @@
-from src.spark_session import get_or_create_spark_session
 from src.word_count import count_words
+from src.wrapped_spark_session import WrappedSparkSession
 
 
 def test_word_count():
@@ -19,8 +19,10 @@ def test_word_count():
     And I will strike down upon thee with great vengeance and furious anger those who would attempt to poison 
     and destroy my brothers. And you will know my name is the Lord when I lay my vengeance upon thee."""
 
-    df = (count_words(blob, get_or_create_spark_session())
-          .orderBy('frequency', ascending=False))
+    spark = WrappedSparkSession.get_or_create()
+
+    df = count_words(blob, spark) \
+        .orderBy('frequency', ascending=False)
 
     df.show(20, truncate=False)
 
