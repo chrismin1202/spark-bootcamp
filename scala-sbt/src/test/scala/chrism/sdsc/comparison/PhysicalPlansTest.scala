@@ -2,7 +2,7 @@ package chrism.sdsc.comparison
 
 import java.util.concurrent.ThreadLocalRandom
 
-import chrism.sdsc.model.CountableWord
+import chrism.sdsc.model.WordFrequency
 import chrism.sdsc.{TestSparkSessionMixin, TestSuite}
 import org.apache.spark.sql.Dataset
 import org.junit.runner.RunWith
@@ -11,7 +11,7 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 final class PhysicalPlansTest extends TestSuite with TestSparkSessionMixin {
 
-  private lazy val tokens: Dataset[CountableWord] = {
+  private lazy val tokens: Dataset[WordFrequency] = {
     import spark.implicits._
 
     val rand = ThreadLocalRandom.current()
@@ -20,7 +20,7 @@ final class PhysicalPlansTest extends TestSuite with TestSparkSessionMixin {
       (1 to 10000)
         .map(_ => rand.nextInt(97, 97 + 26))
         .map(_.asInstanceOf[Char].toString)
-        .map(CountableWord(_)))
+        .map(WordFrequency(_)))
   }
 
   test("word count using DataFrame API") {

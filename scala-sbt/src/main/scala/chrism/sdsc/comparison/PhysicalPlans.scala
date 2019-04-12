@@ -1,7 +1,7 @@
 package chrism.sdsc.comparison
 
 import chrism.sdsc.Runner
-import chrism.sdsc.model.CountableWord
+import chrism.sdsc.model.WordFrequency
 import org.apache.spark.sql.types.DataTypes
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 
@@ -27,16 +27,16 @@ object PhysicalPlans extends Runner {
     }
   }
 
-  def datasetMapGroups(ds: Dataset[CountableWord])(implicit spark: SparkSession): Dataset[CountableWord] = {
+  def datasetMapGroups(ds: Dataset[WordFrequency])(implicit spark: SparkSession): Dataset[WordFrequency] = {
     import spark.implicits._
 
     runAndMeasure {
       ds.groupByKey(_.word)
-        .mapGroups((word, iterator) => CountableWord(word, iterator.map(_.frequency).sum))
+        .mapGroups((word, iterator) => WordFrequency(word, iterator.map(_.frequency).sum))
     }
   }
 
-  def datasetReduceGroups(ds: Dataset[CountableWord])(implicit spark: SparkSession): Dataset[CountableWord] = {
+  def datasetReduceGroups(ds: Dataset[WordFrequency])(implicit spark: SparkSession): Dataset[WordFrequency] = {
     import spark.implicits._
 
     runAndMeasure {

@@ -3,7 +3,7 @@ package chrism.sdsc.wordcount
 import java.util.concurrent.ThreadLocalRandom
 
 import chrism.sdsc.Runner
-import chrism.sdsc.model.CountableWord
+import chrism.sdsc.model.WordFrequency
 import org.apache.spark.sql.{SparkSession, functions}
 
 object WordCount extends Runner {
@@ -27,14 +27,16 @@ object WordCount extends Runner {
       .show(NumLetters, truncate = false)
   }
 
-  private def generateRandomWords( /* potential IO */ ): Seq[CountableWord] = {
+  /** Generates 10,000 random words.
+    * Note that the "words" are one of the lowercased English alphabet: a-z.
+    *
+    * @return 10,000 randomly generated words
+    */
+  private def generateRandomWords( /* potential IO */ ): Seq[WordFrequency] = {
     val rand = ThreadLocalRandom.current()
     (1 to 10000)
-      .map(_ => {
-
-        rand.nextInt(AsciiLowercaseA, AsciiLowercaseA + NumLetters)
-      })
+      .map(_ => rand.nextInt(AsciiLowercaseA, AsciiLowercaseA + NumLetters))
       .map(_.asInstanceOf[Char].toString)
-      .map(CountableWord(_))
+      .map(WordFrequency(_))
   }
 }
