@@ -11,7 +11,7 @@ import scala.util.matching.Regex
 @RunWith(classOf[JUnitRunner])
 final class RDD2DataFrameTest extends TestSuite with TestSparkSessionMixin {
 
-  test("convert RDD of primitive type to DataFrame manually") {
+  test("converting RDD of primitive type to DataFrame manually") {
     // Let's pretend that there exists an RDD that you want to convert to DataFrame.
     val numberRDD = spark.sparkContext.parallelize(1 to 10).cache() // RDD[Int]
 
@@ -33,7 +33,7 @@ final class RDD2DataFrameTest extends TestSuite with TestSparkSessionMixin {
     rows.map(_.getInt(0)) should contain theSameElementsAs (1 to 10)
   }
 
-  test("convert RDD of primitive type to DataFrame implicitly") {
+  test("converting RDD of primitive type to DataFrame implicitly") {
     // Once again, let's pretend that there exists an RDD that you want to convert to DataFrame.
     val numberRDD = spark.sparkContext.parallelize(1 to 10).cache() // RDD[Int]
 
@@ -52,7 +52,7 @@ final class RDD2DataFrameTest extends TestSuite with TestSparkSessionMixin {
     rows.map(_.getInt(0)) should contain theSameElementsAs (1 to 10)
   }
 
-  test("convert RDD of case class to DataFrame implicitly") {
+  test("converting RDD of case class to DataFrame implicitly") {
     import RDD2DataFrameTest.SplitRegex
 
     val text =
