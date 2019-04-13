@@ -45,7 +45,7 @@ object DefineYourOwnFunctions extends Runner {
       })
       .mkString(", ")
 
-    spark.sql(s"SELECT $columnsToSelect FROM $view")
+    spark.sql(s"SELECT $columnsToSelect FROM `$view`")
   }
 
   /** Returns
