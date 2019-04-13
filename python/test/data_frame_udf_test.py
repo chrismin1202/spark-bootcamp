@@ -4,20 +4,6 @@ from src.data_frame_udf import apply_udf_to_data_frame, apply_udf_to_sql
 from src.wrapped_spark_session import WrappedSparkSession
 
 
-def get_boolean_or_none(row, i):
-    if row.isNullAt(i):
-        return None
-    else:
-        return row.getBoolean(i)
-
-
-def get_int_or_none(row, i):
-    if row.isNullAt(i):
-        return None
-    else:
-        return row.getInt(i)
-
-
 def test_applying_udf_to_data_frame():
     """Runs apply_udf_to_data_frame.
 
