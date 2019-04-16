@@ -221,7 +221,7 @@ sh deploy-cassandra.sh --destroy
 ### Kubernetes RBAC
 When you submit a Spark job to Kubernetes and the job fails due to the following message:
 
->Exception in thread "main" io.fabric8.kubernetes.client.KubernetesClientException: Failure executing: POST at: https://<k8s-apiserver-host>:<k8s-apiserver-port>/api/v1/namespaces/default/pods. Message: Forbidden! User kubernetes-admin doesn't have permission. pods "cassandra-test-1555362665973-driver" is forbidden: error looking up service account default/spark: serviceaccount "spark" not found.
+>Exception in thread "main" io.fabric8.kubernetes.client.KubernetesClientException: Failure executing: POST at: https://\<k8s-apiserver-host\>:\<k8s-apiserver-port\>/api/v1/namespaces/default/pods. Message: Forbidden! User kubernetes-admin doesn't have permission. pods "cassandra-test-1555362665973-driver" is forbidden: error looking up service account default/spark: serviceaccount "spark" not found.
 
 chances are that RBAC is enabled in your Kubernetes cluster. You can read more about RBAC [here](https://spark.apache.org/docs/latest/running-on-kubernetes.html#rbac). To resolve this issue, you need to create a service account named `spark` and grant `edit` `ClusterRole` to `spark`. Note `--conf spark.kubernetes.authenticate.driver.serviceAccountName=spark` in `spark-submit` commands above. We are submitting the job as `spark` and therefore `spark` needs to have necessary permissions.<br/>
 Check if the service account `spark` exists:
@@ -235,6 +235,9 @@ kubectl create serviceaccount spark
 to create the service account.<br/>
 After creating the service account `spark`, grant `edit` `ClusterRole` to `spark`:
 ```sh
-kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default
+kubectl create clusterrolebinding spark-role \
+  --clusterrole=edit \
+  --serviceaccount=default:spark \
+  --namespace=default
 ```
 Note that this command grants the role in `default` namespace. If you are submitting your Spark jobs to another namespace, you need to use that namespace.
