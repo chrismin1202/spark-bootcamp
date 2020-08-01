@@ -1,14 +1,28 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package chrism.sdsc.rdd2dataframe
+
 import chrism.sdsc.model.WordFrequency
 import chrism.sdsc.{TestSparkSessionMixin, TestSuite}
+import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 import scala.util.matching.Regex
 
-@RunWith(classOf[JUnitRunner])
 final class RDD2DataFrameTest extends TestSuite with TestSparkSessionMixin {
 
   test("converting RDD of primitive type to DataFrame manually") {
@@ -54,6 +68,7 @@ final class RDD2DataFrameTest extends TestSuite with TestSparkSessionMixin {
 
   test("converting RDD of case class to DataFrame implicitly") {
     import RDD2DataFrameTest.SplitRegex
+    import spark.implicits._
 
     val text =
       "The path of the righteous man is beset on all sides by the inequities of the selfish " +
@@ -78,33 +93,40 @@ final class RDD2DataFrameTest extends TestSuite with TestSparkSessionMixin {
       .groupBy(functions.col("word")) // GROUP BY `word`
       .sum("frequency") // sum(`frequency`)
       .withColumnRenamed("sum(frequency)", "frequency") // sum(`frequency`) AS `frequency`
-      .orderBy(functions.col("frequency").desc) // ORDER BY `frequency` DESC
-      .limit(5)
+      .withColumn(
+        "frequency_rank",
+        functions.dense_rank().over(Window.orderBy($"frequency".desc))
+      ) // dense_rank() OVER (ORDER BY `frequency` DESC) AS `frequency_rank`
+      .where($"frequency_rank" <= 5) // WHERE `frequency_rank` <= 5
+      .orderBy($"frequency".desc, $"word") // ORDER BY `frequency` DESC, `word`
+      .select($"word", $"frequency")
       .collect()
     // Let's make sure that 5 rows have been collected.
-    rows should have length 5
+    rows should have length 6
     // Let's check the schema.
     // The first and second columns should be `word` of type STRING and `frequency` of type BIGINT respectively.
     assert(rows.forall(_.fieldIndex("word") == 0))
     assert(rows.forall(_.fieldIndex("frequency") == 1))
 
     // The top 5 words are:
-    //   +----+---------+
-    //   |word|frequency|
-    //   +----+---------+
-    //   | the|       10|
-    //   | and|        7|
-    //   |  of|        6|
-    //   |  is|        4|
-    //   |  my|        3|
-    //   +----+---------+
+    //   +-----+---------+
+    //   | word|frequency|
+    //   +-----+---------+
+    //   |  the|       10|
+    //   |  and|        7|
+    //   |   of|        6|
+    //   |   is|        4|
+    //   |   my|        3|
+    //   | will|        3|
+    //   +-----+---------+
     // Let's make sure that the 5 rows match the expectation.
     rows.map(r => WordFrequency(r.getString(0), r.getLong(1))) should contain theSameElementsInOrderAs Seq(
       WordFrequency("the", frequency = 10L),
       WordFrequency("and", frequency = 7L),
       WordFrequency("of", frequency = 6L),
       WordFrequency("is", frequency = 4L),
-      WordFrequency("my", frequency = 3L)
+      WordFrequency("my", frequency = 3L),
+      WordFrequency("will", frequency = 3L),
     )
   }
 }

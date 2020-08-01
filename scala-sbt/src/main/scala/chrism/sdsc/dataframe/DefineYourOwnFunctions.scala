@@ -1,10 +1,25 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package chrism.sdsc.dataframe
 
 import java.util.concurrent.ThreadLocalRandom
 import java.{lang => jl}
 
 import chrism.sdsc.Runner
-import org.apache.spark.sql.{DataFrame, SparkSession, functions}
+import org.apache.spark.sql.{functions, DataFrame, SparkSession}
 import org.apache.spark.sql.expressions.UserDefinedFunction
 
 object DefineYourOwnFunctions extends Runner {
@@ -19,7 +34,8 @@ object DefineYourOwnFunctions extends Runner {
   def applyUDFDataFrameAPI(
     df: DataFrame,
     intColumnName: String,
-    convertedColumnName: Option[String] = None): DataFrame =
+    convertedColumnName: Option[String] = None
+  ): DataFrame =
     df.select(
       df.schema
         .map(_.name match {
@@ -29,8 +45,14 @@ object DefineYourOwnFunctions extends Runner {
           case other => functions.col(other)
         }): _*)
 
-  def applyUDFSQLStyle(df: DataFrame, intColumnName: String, convertedColumnName: Option[String] = None)(
-    implicit spark: SparkSession): DataFrame = {
+  def applyUDFSQLStyle(
+    df: DataFrame,
+    intColumnName: String,
+    convertedColumnName: Option[String] = None
+  )(
+    implicit
+    spark: SparkSession
+  ): DataFrame = {
     // Register `df` as a temp view.
     val view = generateViewName()
     df.createOrReplaceTempView(view)
