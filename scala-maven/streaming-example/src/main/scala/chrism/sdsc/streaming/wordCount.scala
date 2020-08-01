@@ -1,7 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package chrism.sdsc.streaming
 
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.{Column, SparkSession, functions}
+import org.apache.spark.sql.{functions, Column, SparkSession}
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 
@@ -14,11 +29,11 @@ import scala.util.matching.Regex
   * 1. Launch this job (either in an IDE or terminal).
   * 2. While the job is running, open up port 9999 (assuming that it's not in use by another application)
   *    in another terminal so that you can start streaming data.
-  *    In Unix-like OS, you can use Netcat {{{nc -lk 9999}}}.
+  *    In Unix-like OS, you can use Netcat {{{ nc -lk 9999 }}}.
   *    In Windows, either install Netcat or find a similar tool.
   * 3. Start streaming text data either by copying & pasting or typing and observe how the job processes the streamed data.
   *
-  * Refer to [[https://github.com/apache/spark/blob/v2.3.0/examples/src/main/scala/org/apache/spark/examples/streaming/SqlNetworkWordCount.scala Spark Streaming Example]]
+  * Refer to [[https://github.com/apache/spark/blob/v3.0.0/examples/src/main/scala/org/apache/spark/examples/streaming/SqlNetworkWordCount.scala Spark Streaming Example]]
   */
 object WordCount {
 
@@ -35,7 +50,7 @@ object WordCount {
 
     val texts = ssc.socketTextStream(Host, Port, StorageLevel.MEMORY_AND_DISK_SER)
 
-    texts.foreachRDD(rdd => {
+    texts.foreachRDD { rdd =>
       // Get the singleton instance of SparkSession
       implicit val spark: SparkSession = SparkSessionSingleton.getOrCreate(rdd.sparkContext.getConf)
 
@@ -52,12 +67,11 @@ object WordCount {
         .orderBy(OrderByCol)
 
       wordFrequencyDs.show(200, truncate = false)
-    })
+    }
 
     ssc.start()
     ssc.awaitTermination()
   }
-
 }
 
 /** Lazily instantiated singleton instance of SparkSession. */
@@ -67,12 +81,11 @@ private object SparkSessionSingleton {
   private var instance: SparkSession = _
 
   def getOrCreate(sparkConf: SparkConf): SparkSession = {
-    if (instance == null) {
+    if (instance == null)
       instance = SparkSession
         .builder()
         .config(sparkConf)
         .getOrCreate()
-    }
     instance
   }
 }

@@ -1,3 +1,18 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package chrism.sdsc.hadoop
 
 import java.io.IOException
@@ -33,7 +48,7 @@ trait TestHadoopFileSystemMixin extends SuiteMixin with BeforeAndAfterAll {
   protected final def hdfsPutResource(resourcePath: String, outputPath: fs.Path): Unit = {
     import chrism.sdsc.util.ResourceHandle.using
 
-    using(getClass.getResourceAsStream(resourcePath))(iStream => {
+    using(getClass.getResourceAsStream(resourcePath)) { iStream =>
       val buffer = new Array[Byte](iStream.available())
       new Array[Byte](iStream.available())
       iStream.read(buffer)
@@ -45,15 +60,15 @@ trait TestHadoopFileSystemMixin extends SuiteMixin with BeforeAndAfterAll {
 
       val inputPath = new fs.Path(tempFile.getAbsoluteFile.getAbsolutePath)
       hdfs().copyFromLocalFile(inputPath, outputPath)
-    })
+    }
   }
 
-  protected final def hdfs( /* side-effects */ ): FileSystem = getOrInitializeFileSystem()
+  protected final def hdfs(/* side-effects */ ): FileSystem = getOrInitializeFileSystem()
 
   protected final def newHdfsPath(p: String, subPaths: String*): fs.Path =
     new fs.Path((hdfsSchemeAuthority +: p +: subPaths).mkString(hdfsPathSeparator))
 
-  private[this] def getOrInitializeHadoopConf( /* IO */ ): Configuration = {
+  private[this] def getOrInitializeHadoopConf(/* IO */ ): Configuration = {
     if (_hadoopConf == null) {
       _hadoopConf = new Configuration()
       _hadoopConf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, _baseDir.getAbsolutePath)
@@ -61,10 +76,9 @@ trait TestHadoopFileSystemMixin extends SuiteMixin with BeforeAndAfterAll {
     _hadoopConf
   }
 
-  private[this] def close( /* side-effects */ ): Unit = {
-    if (_closed) {
+  private[this] def close(/* side-effects */ ): Unit = {
+    if (_closed)
       throw new IOException("FileSystem cannot be re-closed when it is already closed!")
-    }
 
     _hdfs = null
     _cluster.shutdown()
@@ -73,25 +87,21 @@ trait TestHadoopFileSystemMixin extends SuiteMixin with BeforeAndAfterAll {
     _closed = true
   }
 
-  private[this] def checkClosed( /* side-effects */ ): Unit = {
-    if (_closed) {
+  private[this] def checkClosed(/* side-effects */ ): Unit =
+    if (_closed)
       throw new IOException("FileSystem has already been closed!")
-    }
-  }
 
-  private[this] def getOrInitializeCluster( /* side-effects */ ): MiniDFSCluster = {
+  private[this] def getOrInitializeCluster(/* side-effects */ ): MiniDFSCluster = {
     checkClosed()
-    if (_cluster == null) {
+    if (_cluster == null)
       _cluster = new MiniDFSCluster.Builder(getOrInitializeHadoopConf()).build()
-    }
     _cluster
   }
 
-  private[this] def getOrInitializeFileSystem( /* side-effects */ ): FileSystem = {
+  private[this] def getOrInitializeFileSystem(/* side-effects */ ): FileSystem = {
     val cluster = getOrInitializeCluster()
-    if (_hdfs == null) {
+    if (_hdfs == null)
       _hdfs = cluster.getFileSystem( /* IO */ )
-    }
     _hdfs
   }
 

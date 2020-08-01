@@ -1,3 +1,18 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package chrism.sdsc.ml
 
 import chrism.sdsc.spark.Runner
@@ -6,7 +21,7 @@ import org.apache.spark.ml.classification.NaiveBayes
 import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
 import org.apache.spark.ml.feature._
 import org.apache.spark.ml.tuning.{CrossValidator, CrossValidatorModel, ParamGridBuilder}
-import org.apache.spark.ml.{Pipeline, linalg}
+import org.apache.spark.ml.{linalg, Pipeline}
 import org.apache.spark.sql.{Dataset, SparkSession}
 
 import scala.util.matching.Regex
@@ -43,8 +58,12 @@ object SpamDetector extends Runner {
     * @param trainingPercentage the percentage of training [[Dataset]] between (0.0, 1.0)
     * @return an instance of [[Datasets]] that contains training and test [[Dataset]]s
     */
-  private[ml] def loadDatasets(trainingPercentage: Double = DefaultTrainingPercentage)(
-    implicit spark: SparkSession): Datasets = {
+  private[ml] def loadDatasets(
+    trainingPercentage: Double = DefaultTrainingPercentage
+  )(
+    implicit
+    spark: SparkSession
+  ): Datasets = {
     // Split data into training and testing
     val encodedSpamDs = encodeSpamData(loadSpamData())
     Datasets.split(encodedSpamDs, trainingPercentage)
@@ -90,8 +109,9 @@ object SpamDetector extends Runner {
       .setLabelCol("indexedLabel")
       .setMetricName("areaUnderPR") // should be 0.95
 
+    val smoothingRange = (BigDecimal(0.0) to BigDecimal(1.0) by BigDecimal(0.005)).map(_.doubleValue())
     val params = new ParamGridBuilder()
-      .addGrid(naiveBayesClassifier.smoothing, 0.0 to 1.0 by 0.005)
+      .addGrid(naiveBayesClassifier.smoothing, smoothingRange)
       .addGrid(naiveBayesClassifier.modelType, Array("multinomial"))
       .build()
 
@@ -104,14 +124,14 @@ object SpamDetector extends Runner {
       .fit(trainingDs)
   }
 
-  private def loadSpamData( /* IO */ )(implicit spark: SparkSession): Dataset[DataRow] = {
+  private def loadSpamData(/* IO */ )(implicit spark: SparkSession): Dataset[DataRow] = {
     import spark.implicits._
 
     // If the CSV is in HDFS, you should call spark.read.csv(...).
     spark.createDataset(loadCsv())
   }
 
-  private def loadCsv( /* IO */ ): Seq[DataRow] =
+  private def loadCsv(/* IO */ ): Seq[DataRow] =
     ResourceHandle
       .loadResource(RawCsvDataPath)
       .filter(StartsWith.findFirstIn(_).isDefined)

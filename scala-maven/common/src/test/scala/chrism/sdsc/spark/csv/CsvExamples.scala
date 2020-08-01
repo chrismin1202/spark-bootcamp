@@ -1,3 +1,18 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package chrism.sdsc.spark.csv
 
 import chrism.sdsc.TestSuite
@@ -5,11 +20,8 @@ import chrism.sdsc.hadoop.TestHadoopFileSystemMixin
 import chrism.sdsc.spark.TestSparkSessionMixin
 import org.apache.hadoop.fs
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
-import org.apache.spark.sql.{Column, functions}
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.apache.spark.sql.{functions, Column}
 
-@RunWith(classOf[JUnitRunner])
 final class CsvExamples extends TestSuite with TestSparkSessionMixin with TestHadoopFileSystemMixin {
 
   import CsvExamples._
@@ -51,8 +63,8 @@ final class CsvExamples extends TestSuite with TestSparkSessionMixin with TestHa
     // DatzaFrame version
     val numEpisodes1 =
       df.where(
-          ((df("primary_writer") === VinceGilliganCol) || (df("secondary_writer") === VinceGilliganCol)) &&
-            (df("director") === VinceGilliganCol))
+        ((df("primary_writer") === VinceGilliganCol) || (df("secondary_writer") === VinceGilliganCol)) &&
+          (df("director") === VinceGilliganCol))
         .count()
     assert(numEpisodes1 === 4L)
 
@@ -60,11 +72,10 @@ final class CsvExamples extends TestSuite with TestSparkSessionMixin with TestHa
     val ds = df.as[CsvRow]
     val numEpisodes2 = ds
     // .filter is equivalent to .where but more type-safe as we use Scala class
-      .filter(
-        r =>
-          (r.primary_writer == VinceGilligan || r.secondary_writer
-            .contains(VinceGilligan)) &&
-            r.director == VinceGilligan)
+      .filter(r =>
+        (r.primary_writer == VinceGilligan || r.secondary_writer
+          .contains(VinceGilligan)) &&
+          r.director == VinceGilligan)
       .count()
     assert(numEpisodes2 === 4L)
 
@@ -72,10 +83,10 @@ final class CsvExamples extends TestSuite with TestSparkSessionMixin with TestHa
     df.createOrReplaceTempView("bb")
     spark
       .sql(s"""SELECT
-               |  count(*)
-               |FROM bb
-               |WHERE (primary_writer = '$VinceGilligan' OR secondary_writer = '$VinceGilligan')
-               |  AND director = '$VinceGilligan'""".stripMargin)
+              |  count(*)
+              |FROM bb
+              |WHERE (primary_writer = '$VinceGilligan' OR secondary_writer = '$VinceGilligan')
+              |  AND director = '$VinceGilligan'""".stripMargin)
       .show(10)
 
     df.unpersist()
@@ -117,5 +128,4 @@ private[this] object CsvExamples {
     primary_writer: String,
     secondary_writer: Option[String],
     director: String)
-
 }
