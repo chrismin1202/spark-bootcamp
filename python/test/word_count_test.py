@@ -17,13 +17,11 @@
 # limitations under the License.
 #
 
-import unittest
-
 from src.word_count import count_words
-from src.wrapped_spark_session import WrappedSparkSession
+from test.spark_test_case import SparkTestCase
 
 
-class TestWordCount(unittest.TestCase):
+class TestWordCount(SparkTestCase):
 
     def test_word_count(self):
         """Runs word_count.
@@ -42,9 +40,7 @@ class TestWordCount(unittest.TestCase):
         And I will strike down upon thee with great vengeance and furious anger those who would attempt to poison 
         and destroy my brothers. And you will know my name is the Lord when I lay my vengeance upon thee."""
 
-        spark = WrappedSparkSession.get_or_create()
-
-        df = count_words(blob, spark) \
+        df = count_words(blob, self.spark) \
             .orderBy("frequency", ascending=False)
 
         df.show(20, truncate=False)

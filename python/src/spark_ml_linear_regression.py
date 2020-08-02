@@ -50,19 +50,19 @@ def vectorize_and_scale_df(df):
     vectorize_dense = functions.udf(lambda r: Vectors.dense(r), VectorUDT())
     vectorized_df = transformed_df \
         .select(
-            functions.col("medianHouseValue").alias("label"),
-            vectorize_dense(
-                functions.array(
-                    "totalBedRooms",
-                    "population",
-                    "households",
-                    "medianIncome",
-                    "roomsPerHousehold",
-                    "populationPerHousehold",
-                    "bedroomsPerRoom"
-                ))
+        functions.col("medianHouseValue").alias("label"),
+        vectorize_dense(
+            functions.array(
+                "totalBedRooms",
+                "population",
+                "households",
+                "medianIncome",
+                "roomsPerHousehold",
+                "populationPerHousehold",
+                "bedroomsPerRoom"
+            ))
             .alias("features")
-        )
+    )
 
     # Initialize the StandardScaler.
     standard_scaler = StandardScaler(inputCol="features", outputCol="features_scaled")

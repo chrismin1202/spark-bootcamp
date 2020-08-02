@@ -17,15 +17,20 @@
 # limitations under the License.
 #
 
-import unittest
-
 from pyspark.sql import Row
 
 from src.data_frame_udf import apply_udf_to_data_frame, apply_udf_to_sql
-from src.wrapped_spark_session import WrappedSparkSession
+from test.spark_test_case import SparkTestCase
 
 
-class TestDataFrameUdf(unittest.TestCase):
+def _create_test_df(spark):
+    return spark.createDataFrame(
+        [Row(convert_me=0, do_not_mess_with_me=None),
+         Row(convert_me=None, do_not_mess_with_me=1),
+         Row(convert_me=1, do_not_mess_with_me=0)])
+
+
+class TestDataFrameUdf(SparkTestCase):
 
     def test_applying_udf_to_data_frame(self):
         """Runs apply_udf_to_data_frame.
@@ -35,20 +40,9 @@ class TestDataFrameUdf(unittest.TestCase):
         If you are on Unix-like system, it's likely to be /usr/bin/python3 or /usr/bin/local/python3,
         but it depends on how you installed Python3.
         """
-
-        spark = WrappedSparkSession.get_or_create()
-
-        df = spark.createDataFrame(
-            [Row(convert_me=0, do_not_mess_with_me=None),
-             Row(convert_me=None, do_not_mess_with_me=1),
-             Row(convert_me=1, do_not_mess_with_me=0)])
+        df = _create_test_df(self.spark)
         converted_df = apply_udf_to_data_frame(df, "convert_me", "converted")
-
-        row_tuples = list(map(lambda r: (r.converted, r.do_not_mess_with_me), converted_df.collect()))
-        self.assertEqual(len(row_tuples), 3)
-        self.assertIn((False, None), row_tuples)
-        self.assertIn((None, 1), row_tuples)
-        self.assertIn((True, 0), row_tuples)
+        self._assert_data_frame(converted_df)
 
     def test_applying_udf_to_sql(self):
         """Runs apply_udf_to_sql.
@@ -58,17 +52,13 @@ class TestDataFrameUdf(unittest.TestCase):
         If you are on Unix-like system, it's likely to be /usr/bin/python3 or /usr/bin/local/python3,
         but it depends on how you installed Python3.
         """
+        df = _create_test_df(self.spark)
+        converted_df = apply_udf_to_sql(self.spark, df, "convert_me", "converted")
+        self._assert_data_frame(converted_df)
 
-        spark = WrappedSparkSession.get_or_create()
-
-        df = spark.createDataFrame(
-            [Row(convert_me=0, do_not_mess_with_me=None),
-             Row(convert_me=None, do_not_mess_with_me=1),
-             Row(convert_me=1, do_not_mess_with_me=0)])
-        converted_df = apply_udf_to_sql(spark, df, "convert_me", "converted")
-
-        row_tuples = list(map(lambda r: (r.converted, r.do_not_mess_with_me), converted_df.collect()))
+    def _assert_data_frame(self, df):
+        row_tuples = set(map(lambda r: (r.converted, r.do_not_mess_with_me), df.collect()))
         self.assertEqual(len(row_tuples), 3)
-        self.assertIn((False, None), row_tuples)
-        self.assertIn((None, 1), row_tuples)
-        self.assertIn((True, 0), row_tuples)
+
+        expected = {(False, None), (None, 1), (True, 0)}
+        self.assertSetEqual(row_tuples, expected)

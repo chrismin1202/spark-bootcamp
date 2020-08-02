@@ -17,16 +17,14 @@
 # limitations under the License.
 #
 
-import unittest
-
 from pyspark.sql.types import DoubleType
 from pyspark.sql.types import StructType, StructField
 
 from src.spark_ml_linear_regression import evaluate_model, fit_linear_regression, vectorize_and_scale_df
-from src.wrapped_spark_session import WrappedSparkSession
+from test.spark_test_case import SparkTestCase
 
 
-class TestLinearRegressionExample(unittest.TestCase):
+class TestLinearRegressionExample(SparkTestCase):
 
     def test_linear_regression_example(self):
         """Runs linear_regression_example.
@@ -36,8 +34,6 @@ class TestLinearRegressionExample(unittest.TestCase):
         If you are on Unix-like system, it's likely to be /usr/bin/python3 or /usr/bin/local/python3,
         but it depends on how you installed Python3.
         """
-
-        spark = WrappedSparkSession.get_or_create()
 
         schema = StructType([
             StructField("longitude", DoubleType()),
@@ -55,7 +51,7 @@ class TestLinearRegressionExample(unittest.TestCase):
         # If the SparkSession is created with HDFS access,
         # you need to either upload the file cal_housing.data to HDFS or
         # use fully qualified path with 'file://'
-        df = spark.read \
+        df = self.spark.read \
             .option("inferSchema", value=False) \
             .option("header", value=False) \
             .schema(schema) \
