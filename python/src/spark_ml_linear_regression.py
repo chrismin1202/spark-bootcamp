@@ -1,3 +1,22 @@
+#!/usr/bin/env python3
+
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 from pyspark.ml.feature import StandardScaler
 from pyspark.ml.linalg import Vectors, VectorUDT
 from pyspark.ml.regression import LinearRegression
@@ -13,40 +32,40 @@ def vectorize_and_scale_df(df):
     # Transform some columns and select only the columns needed for the subsequent step.
     # Note that if the column name already exists, `withColumn` replaces the column.
     transformed_df = df \
-        .withColumn('medianHouseValue', functions.col('medianHouseValue') / 100000) \
-        .withColumn('roomsPerHousehold', functions.col('totalRooms') / functions.col('households')) \
-        .withColumn('populationPerHousehold', functions.col('population') / functions.col('households')) \
-        .withColumn('bedroomsPerRoom', functions.col('totalBedRooms') / functions.col('totalRooms')) \
+        .withColumn("medianHouseValue", functions.col("medianHouseValue") / 100000) \
+        .withColumn("roomsPerHousehold", functions.col("totalRooms") / functions.col("households")) \
+        .withColumn("populationPerHousehold", functions.col("population") / functions.col("households")) \
+        .withColumn("bedroomsPerRoom", functions.col("totalBedRooms") / functions.col("totalRooms")) \
         .select(
-            'medianHouseValue',
-            'totalBedRooms',
-            'population',
-            'households',
-            'medianIncome',
-            'roomsPerHousehold',
-            'populationPerHousehold',
-            'bedroomsPerRoom'
+            "medianHouseValue",
+            "totalBedRooms",
+            "population",
+            "households",
+            "medianIncome",
+            "roomsPerHousehold",
+            "populationPerHousehold",
+            "bedroomsPerRoom"
         )
 
     vectorize_dense = functions.udf(lambda r: Vectors.dense(r), VectorUDT())
     vectorized_df = transformed_df \
         .select(
-            functions.col('medianHouseValue').alias('label'),
+            functions.col("medianHouseValue").alias("label"),
             vectorize_dense(
                 functions.array(
-                    'totalBedRooms',
-                    'population',
-                    'households',
-                    'medianIncome',
-                    'roomsPerHousehold',
-                    'populationPerHousehold',
-                    'bedroomsPerRoom'
+                    "totalBedRooms",
+                    "population",
+                    "households",
+                    "medianIncome",
+                    "roomsPerHousehold",
+                    "populationPerHousehold",
+                    "bedroomsPerRoom"
                 ))
-            .alias('features')
+            .alias("features")
         )
 
     # Initialize the StandardScaler.
-    standard_scaler = StandardScaler(inputCol='features', outputCol='features_scaled')
+    standard_scaler = StandardScaler(inputCol="features", outputCol="features_scaled")
 
     # Fit the DataFrame to the scaler.
     scaler = standard_scaler.fit(vectorized_df)
@@ -57,7 +76,7 @@ def vectorize_and_scale_df(df):
 
 def fit_linear_regression(train_df):
     # Initialize LinearRegression
-    linear_regression = LinearRegression(labelCol='label', maxIter=10, regParam=0.3, elasticNetParam=0.8)
+    linear_regression = LinearRegression(labelCol="label", maxIter=10, regParam=0.3, elasticNetParam=0.8)
 
     # Fit the data to the model
     return linear_regression.fit(train_df)
@@ -65,7 +84,7 @@ def fit_linear_regression(train_df):
 
 def evaluate_model(linear_model):
     print(
-        'Coefficients: {0}\nIntercept: {1:0.8f}\nRMSE: {2:0.8f}\nR^2: {3:0.8f}'.format(
+        "Coefficients: {0}\nIntercept: {1:0.8f}\nRMSE: {2:0.8f}\nR^2: {3:0.8f}".format(
             # Coefficients for the model
             str(linear_model.coefficients),
             # Intercept for the model

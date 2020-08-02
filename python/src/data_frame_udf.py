@@ -1,3 +1,22 @@
+#!/usr/bin/env python3
+
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 import random
 import sys
 
@@ -30,13 +49,13 @@ def apply_udf_to_data_frame(df, num_column, converted_column):
 
 def apply_udf_to_sql(spark, df, num_column, converted_column):
     # Register the UDF to SparkSession
-    spark.udf.register('to_boolean', to_boolean, "BOOLEAN")
+    spark.udf.register("to_boolean", to_boolean, "BOOLEAN")
 
-    view = 'temp_table_' + str(random.randint(0, sys.maxsize))
+    view = "temp_table_" + str(random.randint(0, sys.maxsize))
     df.createOrReplaceTempView(view)
 
-    column_expr = ', '.join([
-        'to_boolean(`{0}`) AS `{1}`'.format(column, converted_column) if column == num_column
-        else '`{0}`'.format(column)
+    column_expr = ", ".join([
+        "to_boolean(`{0}`) AS `{1}`".format(column, converted_column) if column == num_column
+        else "`{0}`".format(column)
         for column in df.columns])
-    return spark.sql('SELECT {0} FROM `{1}`'.format(column_expr, view))
+    return spark.sql("SELECT {0} FROM `{1}`".format(column_expr, view))
