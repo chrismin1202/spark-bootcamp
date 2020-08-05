@@ -1,13 +1,29 @@
 #!/usr/bin/env bash
 
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 set -o errexit -o pipefail
 
 CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . ${CURR_DIR}/utils.sh
 
 DEPENDENCIES_PATH="${CURR_DIR}/dependencies"
-SPARK_VERSION="spark-2.4.0-bin-hadoop2.7"
-UBER_JAR="spark-cassandra-assembly-0.0.1.jar"
+SPARK_VERSION="spark-3.0.0-bin-hadoop2.7"
+UBER_JAR="spark-cassandra.jar"
 
 function check_requirements {
   command_exists_or_err sbt
@@ -17,26 +33,26 @@ function check_requirements {
 function spark_exists {
   local base_dir="$@"
   echo "Checking if Spark artifacts exists in ${base_dir}..."
-  dir_exists_or_err "$base_dir/jars"
-  dir_exists_or_err "$base_dir/bin"
-  dir_exists_or_err "$base_dir/sbin"
-  dir_exists_or_err "$base_dir/data"
-  dir_exists_or_err "$base_dir/kubernetes/tests"
-  dir_exists_or_err "$base_dir/examples"
+  dir_exists_or_err "${base_dir}/jars"
+  dir_exists_or_err "${base_dir}/bin"
+  dir_exists_or_err "${base_dir}/sbin"
+  dir_exists_or_err "${base_dir}/data"
+  dir_exists_or_err "${base_dir}/kubernetes/tests"
+  dir_exists_or_err "${base_dir}/examples"
 }
 
 function download_if_not_exists {
-  echo "Checking if Spark (${SPARK_VERSION}) has been downloaded to $CURR_DIR"
-  local spark_base_dir="$CURR_DIR/$SPARK_VERSION"
-  if dir_exists $spark_base_dir; then
+  echo "Checking if Spark (${SPARK_VERSION}) has been downloaded to ${CURR_DIR}"
+  local spark_base_dir="${CURR_DIR}/${SPARK_VERSION}"
+  if dir_exists ${spark_base_dir}; then
     echo "It seems that Spark has been dowloaded already. Checking to make sure that necessary jars and scrips exist..."
   else
     echo "Spark has not been downloaded. Downloading Spark (${SPARK_VERSION})..."
     local spark_tar="${SPARK_VERSION}.tgz"
     # using `curl` over `wget` as MacOS is not shipped with `wget`
-    curl -O "https://archive.apache.org/dist/spark/spark-2.4.0/$spark_tar"
+    curl -O "https://archive.apache.org/dist/spark/spark-3.0.0/${spark_tar}"
 
-    echo "Downloaded $SPARK_VERSION successfully. Untarring ${spark_tar}..."
+    echo "Downloaded ${SPARK_VERSION} successfully. Untarring ${spark_tar}..."
     tar -xvzf $spark_tar
     rm $spark_tar
   fi
@@ -67,13 +83,13 @@ function compile_dependencies {
 function image_ref {
   local image="$1"
   local add_repo="${2:-1}"
-  if [ $add_repo = 1 ] && [ -n "$REPO" ]; then
-    image="$REPO/$image"
+  if [ $add_repo = 1 ] && [ -n "${REPO}" ]; then
+    image="${REPO}/${image}"
   fi
   if [ -n "$TAG" ]; then
-    image="$image:$TAG"
+    image="${image}:${TAG}"
   fi
-  echo "$image"
+  echo "${image}"
 }
 
 function build {
@@ -148,13 +164,13 @@ done
 case "${@: -1}" in
   build)
     download_if_not_exists
-    file_exists_or_err "$CURR_DIR/Dockerfile"
-    file_exists_or_err "$CURR_DIR/entrypoint.sh"
+    file_exists_or_err "${CURR_DIR}/Dockerfile"
+    file_exists_or_err "${CURR_DIR}/entrypoint.sh"
     set_spark_home
     build
     ;;
   push)
-    if [ -z "$REPO" ]; then
+    if [ -z "${REPO}" ]; then
       usage
       exit 1
     fi

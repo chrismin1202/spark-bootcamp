@@ -1,3 +1,20 @@
+<!---
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
 # Spark on Kubernetes Example
 
 ## Overview
@@ -27,7 +44,7 @@ The Cassandra cluster used in this example is built with [Helm](https://helm.sh/
 1. Install Docker.<br/>
    If you are on macOS or Windows, [Docker Desktop](https://www.docker.com/products/docker-desktop) is probably the easiest way to run Docker. If you are running from a Linux server, refer to [Official Docker Documentation](https://docs.docker.com), e.g., [installing on CentOS](https://docs.docker.com/install/linux/docker-ce/centos/).
 1. Install Kubernetes.<br/>
-   If you opted for Docker Desktop, you can simply enable Kubernetes from it. Note that if you use Minikube alongside Docker Desktop with Kubernetes enabled, you can run into conflicts. 
+   If you opted for Docker Desktop, you can simply enable Kubernetes from it. Note that if you use Minikube alongside Docker Desktop with Kubernetes enabled, you can run into conflicts.
 1. Install Helm.<br/>
    Refer to [Helm Documentation](https://helm.sh/docs/using_helm/#installing-the-helm-client) for installation instruction.<br/>
    I have installed on macOS and CentOS. On macOS, Homebrew works brilliantly. On CentOS, on the other hand, installing via Snap did not work well for me. I was able to successfully install it using the installer script. Here's the insturction for [installing using the installer script](https://helm.sh/docs/using_helm/#from-script).
@@ -86,7 +103,7 @@ The Cassandra cluster used in this example is built with [Helm](https://helm.sh/
 
 ## Play with Cassandra
 Test to make sure that Cassandra cluster is working properly by running some queries.<br/>
-Cassandra has its own query language similar to ANSI SQL called Cassandra Query Language (CQL). If you are interested, you can learn more about CQL [here](http://cassandra.apache.org/doc/latest/cql/index.html). 
+Cassandra has its own query language similar to ANSI SQL called Cassandra Query Language (CQL). If you are interested, you can learn more about CQL [here](http://cassandra.apache.org/doc/latest/cql/index.html).
 
 1. Open CQL shell.
    ```sh
@@ -136,7 +153,7 @@ Cassandra has its own query language similar to ANSI SQL called Cassandra Query 
 1. Quit the shell.
    ```
    quit;
-   ```  
+   ```
 
 ## Run Spark against Cassandra
 We built a Docker image for Spark so that we can run Spark on Kubernetes. Use the image to submit a Spark application to your Kubernetes cluster.<br/>
@@ -227,7 +244,7 @@ chances are that RBAC is enabled in your Kubernetes cluster. You can read more a
 Check if the service account `spark` exists:
 ```sh
 kubectl get serviceaccounts
-``` 
+```
 If `spark` is listed, the service account exists. If not, run
 ```sh
 kubectl create serviceaccount spark
