@@ -20,8 +20,17 @@ import java.util.concurrent.ThreadLocalRandom
 import chrism.sdsc.model.WordFrequency
 import chrism.sdsc.{TestSparkSessionMixin, TestSuite}
 import org.apache.spark.sql.Dataset
+import org.apache.spark.sql.execution.{CodegenMode, CostMode, ExplainMode, ExtendedMode, FormattedMode, SimpleMode}
 
 final class PhysicalPlansTest extends TestSuite with TestSparkSessionMixin {
+
+  private val explainModes: Set[ExplainMode] = Set(
+    SimpleMode,
+    ExtendedMode,
+    CodegenMode,
+    CostMode,
+    FormattedMode,
+  )
 
   private lazy val tokens: Dataset[WordFrequency] = {
     import spark.implicits._
@@ -38,14 +47,16 @@ final class PhysicalPlansTest extends TestSuite with TestSparkSessionMixin {
   test("word count using DataFrame API") {
     // The physical plan for DataFrame version is simpler than Dataset versions.
     // DataFrame API is more mature and more optimizable than Dataset API.
-    PhysicalPlans.dataFrameGroupByThenSum(tokens).explain()
+    val df = PhysicalPlans.dataFrameGroupByThenSum(tokens)
+    explainPhysicalPlan(df)
   }
 
   test("word count using Dataset API's mapGroups transformation") {
     // One key thing to note is that there is no partial aggregation.
     // Take a look at the ScalaDoc for `mapGroups` overloads in:
     // https://github.com/apache/spark/blob/master/sql/core/src/main/scala/org/apache/spark/sql/KeyValueGroupedDataset.scala#L183
-    PhysicalPlans.datasetMapGroups(tokens).explain()
+    val ds = PhysicalPlans.datasetMapGroups(tokens)
+    explainPhysicalPlan(ds)
   }
 
   test("word count using Dataset API's reduceGroups transformation") {
@@ -55,6 +66,13 @@ final class PhysicalPlansTest extends TestSuite with TestSparkSessionMixin {
     // because these unit tests do not run in distributed fashion.
     // When running this on a distributed file system that exploits data locality, e.g., Hadoop, this version should
     // outperform `datasetMapGroups` version.
-    PhysicalPlans.datasetReduceGroups(tokens).explain()
+    val ds = PhysicalPlans.datasetReduceGroups(tokens)
+    explainPhysicalPlan(ds)
   }
+
+  private def explainPhysicalPlan(ds: Dataset[_]): Unit =
+    explainModes.foreach { mode =>
+      println(s"ExplainMode: ${mode.name}")
+      ds.explain(mode.name)
+    }
 }
