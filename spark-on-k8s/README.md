@@ -28,7 +28,7 @@ The Cassandra cluster used in this example is built with [Helm](https://helm.sh/
   * 4 physical CPU cores or more
   * 4GB of storage
   * To run the example, Docker needs about 8GiB of memory and 2-4 CPU cores allocated.
-* Scala Version: 2.11.12 (You can downgrade, but I recommend 2.11.8 or higher)
+* Scala Version: 2.12.10 (You can downgrade, but I recommend 2.12.10 or higher)
 * SBT
   * Install SBT and have `sbt` command available.
 * Docker
@@ -157,11 +157,11 @@ Cassandra has its own query language similar to ANSI SQL called Cassandra Query 
 
 ## Run Spark against Cassandra
 We built a Docker image for Spark so that we can run Spark on Kubernetes. Use the image to submit a Spark application to your Kubernetes cluster.<br/>
-Make sure that `spark-2.4.0-bin-hadoop2.7` directory, which should have been created when you created the image using `build-spark-docker.sh` script, exists before running the commands below unless you already set up `spark-submit` command on your environment. If you did, the version must be 2.4.0; otherwise, you can run into some version conflicts.
+Make sure that `spark-3.0.0-bin-hadoop2.7` directory, which should have been created when you created the image using `build-spark-docker.sh` script, exists before running the commands below unless you already set up `spark-submit` command on your environment. If you did, the version must be 3.0.0; otherwise, you can run into some version conflicts.
 
 1. Read the Cassandra table `t` in keyspace `test_db` via Spark.
    ```sh
-   spark-2.4.0-bin-hadoop2.7/bin/spark-submit  \
+   spark-3.0.0-bin-hadoop2.7/bin/spark-submit  \
      --master k8s://https://localhost:6443  \
      --deploy-mode cluster  \
      --conf spark.executor.instances=1  \
@@ -169,7 +169,7 @@ Make sure that `spark-2.4.0-bin-hadoop2.7` directory, which should have been cre
      --conf spark.kubernetes.container.image=spark:spark-docker  \
      --class chrism.spark.cassandra.ConnectCassandra  \
      --name cassandra-test  \
-     local:///opt/spark/dependencies/spark-cassandra-assembly-0.0.1.jar \
+     local:///opt/spark/dependencies/spark-cassandra.jar \
        --cassandra-host cassandra-0.cassandra.cassandra \
        --keyspace test_db \
        --table t \
@@ -178,7 +178,7 @@ Make sure that `spark-2.4.0-bin-hadoop2.7` directory, which should have been cre
    ```
    * Note 1: The master `k8s://https://localhost:6443` needs to be changed if the host and/or port of your Kubernetes master is different.
    * Note 2: If you changed the tag name from "spark-docker" to something else, you need to update the conf `spark.kubernetes.container.image=spark:spark-docker` accordingly.<br/>
-   * Note 3: `local:///opt/spark/dependencies/spark-cassandra-assembly-0.0.1.jar` is the location of the jar within the Docker image.<br/>
+   * Note 3: `local:///opt/spark/dependencies/spark-cassandra.jar` is the location of the jar within the Docker image.<br/>
    * Note 4: The following arguments are the arguments for `chrism.spark.cassandra.ConnectCassandra`.
      ```
      --cassandra-host cassandra-0.cassandra.cassandra \
@@ -192,7 +192,7 @@ Make sure that `spark-2.4.0-bin-hadoop2.7` directory, which should have been cre
    * Note 5: The Cassandra host `cassandra-0.cassandra.cassandra` can only be resolved if you are running both Cassandra and Spark on the same Kubernetes cluster. If you have a Cassandra cluster on a different Kubernetes cluster or if there exists a non-Kubernetized Cassandra cluster you'd like to use, you need to use its external host name.
 1. Create and write to a new Cassandra table via Spark.
    ```sh
-   spark-2.4.0-bin-hadoop2.7/bin/spark-submit  \
+   spark-3.0.0-bin-hadoop2.7/bin/spark-submit  \
       --master k8s://https://localhost:6443  \
       --deploy-mode cluster  \
       --conf spark.executor.instances=1  \
@@ -200,7 +200,7 @@ Make sure that `spark-2.4.0-bin-hadoop2.7` directory, which should have been cre
       --conf spark.kubernetes.container.image=spark:spark-docker  \
       --class chrism.spark.cassandra.ConnectCassandra  \
       --name cassandra-test  \
-      local:///opt/spark/dependencies/spark-cassandra-assembly-0.0.1.jar \
+      local:///opt/spark/dependencies/spark-cassandra.jar \
          --cassandra-host cassandra-0.cassandra.cassandra \
          --keyspace test_db \
          --table t_spark \
@@ -210,7 +210,7 @@ Make sure that `spark-2.4.0-bin-hadoop2.7` directory, which should have been cre
    Note that the schema of the table being created is defined in `spark-cassandra` proeject. Spark reflectively creates the schema (`StructType`) from the class [`DummySchema`](spark-cassandra/src/main/scala/chrism/spark/cassandra/DummySchema.scala).
 1. Read the table you just created.
    ```sh
-   spark-2.4.0-bin-hadoop2.7/bin/spark-submit  \
+   spark-3.0.0-bin-hadoop2.7/bin/spark-submit  \
       --master k8s://https://localhost:6443  \
       --deploy-mode cluster  \
       --conf spark.executor.instances=1  \
@@ -218,7 +218,7 @@ Make sure that `spark-2.4.0-bin-hadoop2.7` directory, which should have been cre
       --conf spark.kubernetes.container.image=spark:spark-docker  \
       --class chrism.spark.cassandra.ConnectCassandra  \
       --name cassandra-test  \
-      local:///opt/spark/dependencies/spark-cassandra-assembly-0.0.1.jar \
+      local:///opt/spark/dependencies/spark-cassandra.jar \
          --cassandra-host cassandra-0.cassandra.cassandra \
          --keyspace test_db \
          --table t_spark \
