@@ -19,8 +19,8 @@
 
 This repository contains code samples for Apache Spark/Spark MLlib Workshop @ [SDSC](https://www.southerndatascience.com/) 2020 Atlanta.
 
-* Scala Version: 2.11.12 (You can downgrade, but I recommend 2.11.8 or higher)
-* Python Version: 3.x
+* Scala Version: 2.12.10
+* Python Version: 3.7
 * Recommended IDEs
   * IntelliJ for Scala examples
   * PyCharm for Python examples
