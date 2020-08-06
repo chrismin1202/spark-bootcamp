@@ -43,9 +43,10 @@ function deploy {
 
   echo "Deploying Cassandra cluster named ${CLUSTER_NAME} to the namespace ${K8S_NAMESPACE}..."
   helm install \
-    --namespace ${K8S_NAMESPACE} -n ${CLUSTER_NAME} \
+    ${CLUSTER_NAME} incubator/cassandra \
+    --namespace ${K8S_NAMESPACE} \
     --set config.cluster_size=2,config.max_heap_size=1024M,persistence.size=1Gi \
-    incubator/cassandra
+    --debug ${DRY_RUN}
 }
 
 function destory {
@@ -69,9 +70,11 @@ Options:
 
   --destroy        Destroys Cassandra Helm Chart.
 
-  -ns|--namespace  The Kubernetes namespace to use (defalt: ${DEFAULT_K8S_NAMESPACE})
+  -ns|--namespace  The Kubernetes namespace to use (defalt: ${DEFAULT_K8S_NAMESPACE}).
 
-  -n|--name        The name of the Cassandra cluster (default: ${DEFAULT_CLUSTER_NAME})
+  -n|--name        The name of the Cassandra cluster (default: ${DEFAULT_CLUSTER_NAME}).
+
+  -dry-run         Specify to run the chart in dry-run mode.
 
 Examples:
 
@@ -95,6 +98,7 @@ DEPLOY=false
 DESTROY=false
 K8S_NAMESPACE=${DEFAULT_K8S_NAMESPACE}
 CLUSTER_NAME=${DEFAULT_CLUSTER_NAME}
+DRY_RUN=""
 
 # Note that getopt is not so MacOS-friendly.
 while [[ $# -gt 0 ]]
@@ -121,6 +125,10 @@ case $key in
   -n|--name)
     CLUSTER_NAME="$2"
     shift 2
+    ;;
+  --dry-run)
+    DRY_RUN="--dry-run"
+    shift
     ;;
   --)
     shift

@@ -21,8 +21,12 @@ set -o errexit -o pipefail
 CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . ${CURR_DIR}/utils.sh
 
+SCALA_VERSION="2.12"
+
 DEPENDENCIES_PATH="${CURR_DIR}/dependencies"
-SPARK_VERSION="spark-3.0.0-bin-hadoop2.7"
+SPARK_VERSION="3.0.0"
+HADOOP_VERSION="2.7"
+SPARK_BIN="spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}"
 UBER_JAR="spark-cassandra.jar"
 
 function check_requirements {
@@ -42,17 +46,17 @@ function spark_exists {
 }
 
 function download_if_not_exists {
-  echo "Checking if Spark (${SPARK_VERSION}) has been downloaded to ${CURR_DIR}"
-  local spark_base_dir="${CURR_DIR}/${SPARK_VERSION}"
+  echo "Checking if Spark (${SPARK_BIN}) has been downloaded to ${CURR_DIR}"
+  local spark_base_dir="${CURR_DIR}/${SPARK_BIN}"
   if dir_exists ${spark_base_dir}; then
     echo "It seems that Spark has been dowloaded already. Checking to make sure that necessary jars and scrips exist..."
   else
-    echo "Spark has not been downloaded. Downloading Spark (${SPARK_VERSION})..."
-    local spark_tar="${SPARK_VERSION}.tgz"
+    echo "Spark has not been downloaded. Downloading Spark (${SPARK_BIN})..."
+    local spark_tar="${SPARK_BIN}.tgz"
     # using `curl` over `wget` as MacOS is not shipped with `wget`
     curl -O "https://archive.apache.org/dist/spark/spark-3.0.0/${spark_tar}"
 
-    echo "Downloaded ${SPARK_VERSION} successfully. Untarring ${spark_tar}..."
+    echo "Downloaded ${SPARK_BIN} successfully. Untarring ${spark_tar}..."
     tar -xvzf $spark_tar
     rm $spark_tar
   fi
@@ -61,7 +65,7 @@ function download_if_not_exists {
 
 function set_spark_home {
   if [ -z "${SPARK_HOME}" ]; then
-    SPARK_HOME="${CURR_DIR}/${SPARK_VERSION}/"
+    SPARK_HOME="${CURR_DIR}/${SPARK_BIN}/"
   fi
   . "${SPARK_HOME}/bin/load-spark-env.sh"
 }
@@ -74,7 +78,7 @@ function compile_dependencies {
   echo "Successfully compiled Spark Cassandra example."
   cd ${CURR_DIR}
 
-  local uber_jar_src_path="${sbt_path}/target/scala-2.11/${UBER_JAR}"
+  local uber_jar_src_path="${sbt_path}/target/scala-${SCALA_VERSION}/${UBER_JAR}"
   local uber_jar_dest_path="${DEPENDENCIES_PATH}/${UBER_JAR}"
   echo "Copying the compiled uber jar from ${uber_jar_src_path} to ${uber_jar_dest_path}"
   cp ${uber_jar_src_path} ${uber_jar_dest_path}
@@ -101,7 +105,7 @@ function build {
   fi
   compile_dependencies
 
-  local build_args=("--build-arg" "spark_base=${SPARK_VERSION}")
+  local build_args=("--build-arg" "spark_base=${SPARK_BIN}")
 
   echo "Checking if there is any Docker image with the tag ${TAG}..."
   local existing_images=$(docker images --filter=reference="*:${TAG}" -q)

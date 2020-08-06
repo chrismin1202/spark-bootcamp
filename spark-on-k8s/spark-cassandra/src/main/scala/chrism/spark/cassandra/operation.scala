@@ -19,7 +19,7 @@ import java.time.{LocalDate, LocalDateTime}
 import java.util.concurrent.ThreadLocalRandom
 import java.{sql => js}
 
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{SaveMode, SparkSession}
 
 private sealed trait Operation {
 
@@ -56,6 +56,7 @@ private case object Write extends Operation {
       clusteringKeyColumns = Some(DummySchema.ClusteringKeyColumns))
 
     df.write
+      .mode(SaveMode.Append)
       .cassandraFormat(table, keyspace)
       .save()
   }
