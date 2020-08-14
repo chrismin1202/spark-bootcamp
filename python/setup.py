@@ -25,6 +25,6 @@ setup(
     version='0.0.1',
     description='Simple PySpark Examples',
     author='Chris Min',
-    author_email='chrismin1202@gmail.com',
+    author_email='chrism.1202@gmail.com',
     packages=find_packages()
 )

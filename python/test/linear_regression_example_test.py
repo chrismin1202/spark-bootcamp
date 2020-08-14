@@ -57,6 +57,8 @@ class TestLinearRegressionExample(SparkTestCase):
             .schema(schema) \
             .csv("../resources/cal_housing.data")
 
+        df.show(10, truncate=False)
+
         # Transform the DataFrame
         scaled_df = vectorize_and_scale_df(df)
 
@@ -75,3 +77,5 @@ class TestLinearRegressionExample(SparkTestCase):
 
         # Evaluate the model
         evaluate_model(linear_model)
+
+        print("here")
