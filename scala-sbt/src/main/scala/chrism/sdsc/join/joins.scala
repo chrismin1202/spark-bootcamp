@@ -42,6 +42,39 @@ object JoinExamples extends Runner {
     nameGenderDs
   }
 
+  def joinExampleSql()(implicit spark: SparkSession): DataFrame = {
+    nameDs().createOrReplaceTempView("names")
+    genderDs().createOrReplaceTempView("genders")
+
+    spark.sql(
+      """SELECT
+        |  n.id AS id,
+        |  n.first AS first,
+        |  n.last AS last,
+        |  g.gender AS gender
+        |FROM names n
+        |JOIN genders g
+        |ON n.id = g.id""".stripMargin
+    )
+  }
+
+  def joinExampleDF()(implicit spark: SparkSession): DataFrame = {
+    val nameDF = nameDs()
+    val genderDF = genderDs()
+
+    // Option 1
+//    nameDF.join(genderDF, Seq("id"))
+
+    // Option 2
+    nameDF
+      .join(genderDF, nameDF("id") === genderDF("id"))
+      .select(
+        nameDF("id").as("id"),
+        nameDF("first").as("first"),
+        nameDF("last").as("last"),
+        genderDF("gender").as("gender"))
+  }
+
   def leftOuterJoinExample()(implicit spark: SparkSession): Dataset[Profile] = {
     import spark.implicits._
 

@@ -32,6 +32,14 @@ final class JoinExamplesTest extends TestSuite with TestSparkSessionMixin {
     profiles should contain theSameElementsAs expected
   }
 
+  test("INNER JOIN SQL version") {
+    JoinExamples.joinExampleSql().show(10, truncate = false)
+  }
+
+  test("INNER JOIN DataFrame version") {
+    JoinExamples.joinExampleDF().show(10, truncate = false)
+  }
+
   test("LEFT OUTER JOIN") {
     val profiles = JoinExamples.leftOuterJoinExample().collect()
     val expected = Seq(
